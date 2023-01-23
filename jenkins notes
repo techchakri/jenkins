@@ -1,0 +1,601 @@
+Jenkins is installed on the AWS Ec2 instance on docker tool:
+------------------------------------------------------------
+jenkins_url: ipaddress:portnumber
+             13.127.187.167:8080
+              
+username: admin
+password: welcome1
+
+
+github token : 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
+
+-------------------------------------------------------------------------------------------------
+
+Jenkins Day-1 Session
+----------------------
+Jenkins is a Continous Integration (CI) and Continous Deployment (CD) tools
+
+
+Source code Management (VCS) --> Build/Package --> System Test Environment --> Performance Test Environment --> Staging/UAT/Pre-Product Environment --> Production/Live Environment 
+
+Continous Integration vs Continous Delivery vs Continous Deployment
+-------------------------------------------------------------------------------------------------
+
+Jenkins Day-2 Session
+----------------------
+Continous Integration (CI) and Continous Deployment (CD)
+
+Big Bang Integration were done or adopted by the industry in early 2000's
+
+Grady Booch (Design of UML, Algorithms) Proposed Continous Integration:
+
+1. Maintain a Single code repository for the project.
+
+2. Integrate application every time / frequently whenever developer commits the code.
+
+3. Ensure have automated Unit Tests cases such as smoke tests, sanity
+
+4. Automate the build and execute the tests, showcase the test results to the developer.
+
+5. Also check the code quality 
+
+
+Lot of Organization have CI tool in place 
+
+we need a tool which can detect when the code is commited to the repository (GIT) and execute the tests case and notify the results.
+
+There lot of tools available.
+
+Azure Devops --> Microsoft Formly Tool name was VSTS --> TFS
+
+Bamboo --> from Atlassian
+
+GitLab 
+
+GitHub Actions
+
+Jenkins 
+
+Teamcity 
+
+Travis CI
+
+-------------------------------------------------------------------------------------------------
+
+Jenkins 
+--------
+Any CI/CD system is conceptually cron on Steriods
+
+Customized 
+
+Jenkins has a lot of plugins --> cloudbees
+
+Jenkins is an Open Source Automation Server that fine tunes for CI/CD Activities.
+
+Jenkins Installation  ---> https://www.jenkins.io/download
+
+Initially, lets take a free tier eligible machine.
+
+AWS: t2.micro  --> 1GB RAM, 8GB HDD, 1 Core CPU
+     t2.medium --> 2GB RAM, 16GB HDD, 2 Core CPU --> go with this
+     
+     
+
+Provision the VM in AWS:
+------------------------
+1. Launch the AWS Ec2 Instance
+2. Select Ubuntu
+3. Instance type t2.micro
+4. Key Pair ubuins.pem
+5. select vpc , public subnet , security group
+6. click on the Launch Instance
+
+Install Jdk and Jenkins on AWS Ec2 Instance:
+--------------------------------------------
+Search the software packages of openjdk (sudo apt-cache search openjdk)
+1. sudo apt update -y
+2. sudo apt install -y openjdk-11-jdk
+3. java -version
+
+Install Jenkins: [ https://www.jenkins.io/doc/book/installing/linux/ ]
+-----------------
+
+1. curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo tee \
+    /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+    
+2. echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+    https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
+    /etc/apt/sources.list.d/jenkins.list > /dev/null
+    
+3. 
+  sudo apt-get update
+  sudo apt-get install jenkins
+  
+4. sudo systemctl status jenkins
+
+5. sudo systemctl restart jenkins
+
+6. Accessing the jenkins website --> http://publicipaddress:8080/
+
+7. Unlock Jenkins /var/lib/jenkins/secrets/initialAdminPassword copy password paste in jenkinssite.
+
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+asadaskj3sdjdskf7djhsfhsdh6
+
+8. Customize Jenkins -> click on "Install Suggested Plugins"
+
+9. Create First Admin User --> please give the username , password , confirm password
+
+10. Jenkins URL : http://publicipaddress:8080/ --> click on "save and finish"
+
+-------------------------------------------------------------------------------------------------
+
+Jenkins Day-3 Session:
+----------------------
+
+DevOps is integrated with Agile Process
+
+Quick installation of Jenkins once again, then we proceed with our jenkins sessions.
+
+1. Jenkins --> Linux (Amazon Linux , Ubuntu , Centos , RedHat )
+
+2. Go with installing Jenkins on Docker Container.
+
+Install Docker Engine on Ubuntu [ https://docs.docker.com/engine/install/ubuntu/ ]
+----------------------------------------------------------------------------------
+Uninstall old versions:
+1. sudo apt-get remove docker docker-engine docker.io containerd runc
+
+Install using repositories:
+
+1. sudo apt-get install \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release
+    
+2. 
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+3. 
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  
+4. sudo apt-get update
+
+5. sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+6. sudo usermod -aG docker $USER
+
+
+-------------------------------------------------------------------------------------------------
+
+1. Run the docker container for Jenkins Software.
+
+  docker container run -it -d -p 8081:8080 jenkins/jenkins
+  
+2. Unlock Jenkins  
+   docker container exec -it <container-id> /bin/bash
+   goto the /var/jenkins_home/secrets/initialAdminPassword
+   copy the password from above path and paste in the unlock jenkins. 
+   
+3. click on the install suggested plugins
+
+4. give the username , password , confirm password , full name and email
+
+5. Jenkins url --> http://publicipaddress:8081/
+
+
+Jenkins Project-1 [ hellojenkins ]
+----------------------------------
+1. project name hellojenkins
+2. select freestyle project and finish
+3. In the Build Steps choose the execute shell   
+   who
+   pwd
+4. click on save and apply button
+5. click on the build now button
+6. In the console output 
+   Started by user chakravarthijallu
+   Running as SYSTEM
+   Building in workspace /var/jenkins_home/workspace/hellojenkins
+   [hellojenkins] $ /bin/sh -xe /tmp/jenkins16019031649712101064.sh
+   + whoami
+   jenkins
+   + pwd
+   /var/jenkins_home/workspace/hellojenkins
+   Finished: SUCCESS
+   
+Note: From Jenkins UI, no matter what user logged in as, the low level commands as executed as a 'jenkins' user.
+
+Making the Jenkins as a sudoer/sudo access permissions:
+-------------------------------------------------------
+1. goto the /etc/sudoers file and copy into the /tmp folder
+
+   sudo cp /etc/sudoers /tmp/
+   
+2. change / give the write access permission for the /tmp/sudoers file
+   
+   sudo chmod 0640 /tmp/sudoers
+
+3. open the /tmp/sudoers file and edit the user as jenkins as shown as below.
+
+   jenkins ALL=(ALL:ALL) NOPASSWD:ALL
+
+4. check the syntax or logic is correct or not
+   
+   sudo visudo -cf /tmp/sudoers
+   
+   sudo visudo -cf /tmp/sudoers 
+  /tmp/sudoers: parsed OK
+  /etc/sudoers.d/90-cloud-init-users: parsed OK
+  /etc/sudoers.d/README: parsed OK
+
+5. copy the /tmp/sudoers into the /etc/sudoers 
+
+   sudo cp /tmp/sudoers /tmp/sudoers
+   
+Note: we made the jenkins as super user.
+
+Default Home Directory of Jenkins is /var/lib/jenkins
+
+Jobs --> It contains the Jenkins builds information in the form of .xml like config.xml
+
+Workspace --> It contains the data produced by the jenkins builds
+
+-------------------------------------------------------------------------------------------------
+
+
+Jenkins Day - 4 Session :
+-------------------------
+
+Jenkins Continue :
+ 
+We use Jenkins to create CI/CD pipeline which generally starts from the control system like git.
+
+we need to clone the code and start building a package (Binaries).
+
+Building a package depends on the language of your application.
+
+Cloning the code from the git.
+
+How to clone the open source project using jenkins ?
+
+Cloning the code from the git 
+1. git url     - (https://github.com/techchakri/LoginRegMgmt.git)
+2. credentials - (username/password or ssh key)
+3. branch      - (master branch or feature branch)
+
+lets consider that following two java open source applications
+
+1. LoginRegMgmt project [ FreeStyle Project ]
+   Developed in Java
+    requires the openjdk11 to be installed
+    repo url : https://github.com/techchakri/LoginRegMgmt.git
+    
+github username and pattoken for accessing the github:
+------------------------------------------------------
+techchakri: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@
+
+code for git clone in jenkins project: [ build execute shell ]
+--------------------------------------
+git clone https://techchakri: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@github.com/techchakri/LoginRegMgmt.git
+cd LoginRegMgmt
+git branch
+ls -al .
+
+click on apply and save
+click on build now
+
+----------------------------------------------------------------------------------------
+
+
+2. Counter-app Project [ FreeStyle Project ]
+   Developed in Python Flask
+     requireds the Python and Flask
+     repo url : https://github.com/techchakri/counter-app.git
+     
+ In the Freestyle project we create gitcloningcounter-app
+ In the configurations of Source Code Management (SCM)
+    Choose the git 
+    
+      -> git url     : https://github.com/techchakri/counter-app.git
+      -> credentials : choose the username and password 
+                        username : techchakri
+                        password : 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
+                        id       : gitcredstechchakri
+      -> branch      : */master
+click on apply and save 
+click on build now 
+
+------------------------------------------------------------------------------------------
+
+3. Lcotodo-app Project [ FreeStyle Project ]
+   Developed in Reactjs
+     requires the nodejs and react
+     repo url : https://github.com/techchakri/lcotodo-app.git
+    
+ In the Freestyle project we create gitcloningcounter-app
+ In the configurations of Source Code Management (SCM)
+    Choose the git 
+      -> git url     : https://github.com/techchakri/lcotodo-app.git
+      -> credentials : choose the username and password 
+                        1. username : techchakri
+                        2. password : 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
+                        3. id       : gitcredstechchakri
+      -> branch      : */master
+click on apply and save
+click on build now 
+
+-----------------------------------------------------------------------------------------
+
+Build / Package the code :
+--------------------------
+
+Most of Software languages ( Java, dotnet, C, C++) --> It always requires the dependencies.
+
+spring framework is dependency, it is libraries or we can call it as repository
+
+Java Spring boot --> download all the dependencies and he will make use of those dependencies while writing the code/applications.
+
+suppose for example , you are java program , and u send some message from ur java program
+
+python --> pip install django
+
+javascript --> react js --> nodejs or npm
+
+-------------------------------------------------------------------------------------------------
+
+Jenkins Day - 5 Session:
+------------------------
+
+Whenever the developer is writing the code [java]
+
+For Your Organization Project:
+------------------------------
+1. How to download the dependencies
+2. How to build the code and what are the tools used?
+3. How to run the unit tests and generate the unit test report
+4. How to run the code coverage and generate the report
+5. How to run the static code analysis and generate the report
+6. How to create the quality gates to fail the build if the code coverage or static code analysis is not acceptable (optional)
+
+What is the roles / reponsibilities of Developer Vs DevOps
+Developer
+---------
+Developing the code
+Write the unit tests
+Ensuring the unit tests are passed locally
+Ensure the static code analysis is passed locally 
+Ensure Quality gates are passed locally
+
+DevOps
+------
+1. Get the latest code from GIT
+2. Build the code
+3. Run Unit tests, code coverage , static code analysis and generate the reports.
+4. if any of the above fails, reject the commit done by the developer
+5. if all the above is passed , accept that commit and he proceed to next steps.
+
+
+Building the Java code with Maven:
+----------------------------------
+1. Install java package using the below command:
+   sudo apt update -y
+   sudo apt install -y openjdk-11-jdk
+2. check the version of java
+   java -version
+   
+  cat main.java
+  -------------
+  // For First Program
+
+class HelloWorld {
+    public static void main(String[] args) {
+        System.out.println("Hello, world!");
+   }
+}
+
+3. compile the java code using below command
+   javac main.java
+4. execute the java code using below command
+   java HelloWorld
+
+
+5. create the .jar file from the .class using the below command
+   jar cf helloworld.jar HelloWorld.class
+   
+   ubuntu@docker-server:~/javademo$ ls
+    HelloWorld.class  helloworld.jar  main.java
+
+
+Apache Software Foundation:
+---------------------------
+ANT Tool
+---------
+
+Building the java code is executing the .java file with ```javac <.java>``` and it will create .class file . Now to run the application, you need to execute code ```java path .class```
+
+In the Enterprise software project, we willhave multiple java files, so building each file to generate the .class file and then combining all the .class file to build a .jar file format is difficult.
+
+Apache ANT was the first famour tool which helped in building the java code.
+
+ANT build files are written in xml format and always the file name will be build.xml
+
+Binary is the format that is packaged version of the code , it can be .jar or .war or .ear file.
+
+
+Maven Build Tool:
+-----------------
+Maven is Software project management tool (build , dependency management tool)
+Maven is based on the code of Project Object Model (POM) , here also the format is .xml
+
+Maven Provides:
+---------------
+
+1. Build 
+2. test
+3. reports
+4. documentation
+5. releases
+
+Maven follows convention over the configuration
+
+For Example basedir=/home/ubuntu/javademo
+
+| Source code                 | ${basedir}/src/main/java/*.java files are available
+| Resources files             | ${basedir}/src/main/resources/*.properties files are available
+| Unit test files             | ${basedir}/src/test/ test files contains in here
+| Compiled Byte Code          | ${basedir}/target/classes/
+| Distributable (jar|war|ear) | ${basedir}/target/
+
+
+
+basedir=/home/ubuntu/mavendemo
+
+location of pom.xml = /home/ubuntu/mavendemo/pom.xml
+
+Install maven :
+There are 2 types for installing maven tool
+
+1. sudo apt install maven -y
+
+  sudo apt update -y
+  sudo apt-cache search maven
+  sudo apt-cache madison maven
+  sudo apt install -y maven
+  mvn --version
+  
+  mvn compile
+  
+2. Download the apache-maven (.tar.gz) from the official site and place into some location and set the path information.
+
+-----------------------------------------------------------------------------------------------
+Jenkins Day-6 Session:
+----------------------
+
+Maven Build Tools - it is used to download all the dependency required for the projects 
+
+https://mvnrepository.com/ --> it is the central maven repository
+
+sudo update-alternatives --config java
+
+mavendemo project:
+------------------
+1. Install openjdk-11-jdk (sudo apt update -y && sudo apt install -y openjdk-11-jdk)
+2. Install maven          ( wget apache-maven-3.8.7-bin.tar.gz -o /opt/ )
+    set the path (export PATH=$PATH:/opt/apache-maven-3.8.7/bin/)
+    above line we can pass as command in cli or we write in the /home/$USER/.bashrc file
+
+3. mavendemo
+    |- pom.xml
+    |- src/
+       |- main/
+          |-java/
+             |-main.java
+4. pom.xml (cat pom.xml)
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.chakri-devops</groupId>
+  <artifactId>hello-world</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <properties>
+               <maven.compiler.source>11</maven.compiler.source> 
+               <maven.compiler.target>11</maven.compiler.target>
+  </properties>
+  <dependencies>
+    <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>31.1-jre</version>
+    </dependency>
+  </dependencies>
+</project>
+
+5. cat src/main/java/main.java
+class HelloWorld {
+   public static void main(String[] args) {
+        System.out.println("Hello, World!");
+  }
+}
+
+5. mvn clean package --> it generates the .jar file in the target folder
+
+6. set the export CLASSPATH=/home/ubuntu/mavendemo/target/hello-world-1.0.0-SNAPSHOT.jar
+7. java HelloWorld
+
+------------------------------------------------------------------------------------------------
+
+Maven Install: /opt/apache-maven-3.8.7/bin
+
+1. 
+compile --> mvn compile
+
+2. 
+unit tests --> mvn test --> compile + test
+
+3. 
+build the package (jar/war/ear) --> mvn package --> compile + test + package --> target/<jar/war/ear>
+
+4. 
+To clean the target directory --> mvn clean 
+             
+
+Developer Environement --> Java 13 , Maven 3.2
+
+Devops , under your environement --> Test Environment --> Java 13 , Maven 3.2
+
+I need to install through the code (.tar.gz) , you will go to the official site of apache maven 
+
+/opt/apache-maven-3.2/bin/mvn
+
+cd /etc/profile.d
+sudo vi maven.sh
+export M2_HOME='/opt/apache-maven-3.2/bin'
+PATH="$M2_HOME:$PATH"
+export PATH
+
+source maven.sh
+
+logout and login terminal
+
+Build the spring pet clinic open source java spring framework project:
+----------------------------------------------------------------------
+
+mkdir specdemo
+cd specdemo
+
+git clone https://github.com/spring-projects/spring-petclinic.git
+
+mvn compile 
+mvn test --> It will run the unit test and result will be placed under the surefire-reports
+             (/home/ubuntu/spring-petclinic/target/surefire-reports)
+             
+mvn package --> compile + test + package (jar/war/ear) 
+                basedir/target/spring-petclinic-3.0.0-SNAPSHOT.jar
+                
+java -jar spring-petclinic-3.0.0-SNAPSHOT.jar
+
+
+Where all the downloaded maven repository is kept. It is always kept under HOME_DIR/.m2/repository.
+
+user home directory --> /home/ubuntu/.m2/repository
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
